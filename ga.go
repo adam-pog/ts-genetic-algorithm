@@ -28,6 +28,7 @@ func main() {
 
     fmt.Println("Hello, World!")
     cityMap := generateCityDists()
+    fmt.Println(cityMap)
     currentPop := generatePop()
     currentPop.calculateFitness(cityMap)
     fittestTour := findFittest(currentPop.tours)
@@ -39,7 +40,7 @@ func main() {
         currentPop.calculateFitness(cityMap)
         fittestTour = findFittest(currentPop.tours)
 
-        if genNum % 10000 == 0 {
+        if genNum % 50000 == 0 {
             fmt.Println(fittestTour.fitness)
         }
 
@@ -59,28 +60,31 @@ func main() {
 
 
 
-func findSolution(cityMap) int {
+func findSolution(cityMap []map[int]int) int {
     A := []int{}
     c := []int{}
     for i := 0; i < NumCities; i++ {
-        A.path = append(A.path, i)
-        c.path = append(c.path, 0)
+        A = append(A, i)
+        c = append(c, 0)
     }
 
-    solution := A.fitness
+    solution := calculateTourFitness(A, cityMap)
 
-    for i := 0; i < NumCities; i++ {
+    for i := 0; i < NumCities; {
         if c[i] < i {
             if i % 2 == 0 {
                 temp := A[0]
                 A[0] = A[i]
                 A[i] = temp
             } else {
-                temp := c[i]
-                c[i] = A[i]
+                temp := A[c[i]]
+                A[c[i]] = A[i]
                 A[i] = temp
             }
-            fmt.Println(A)
+            newSol := calculateTourFitness(A, cityMap)
+            if newSol < solution {
+                solution = newSol
+            }
             c[i]++
             i = 0
         } else {
@@ -90,9 +94,30 @@ func findSolution(cityMap) int {
 
     }
 
-
-
+    return solution
 }
+
+
+func calculateTourFitness(tour []int, cityMap []map[int]int) int{
+    fitness := 0
+
+    for j := 0; j < NumCities; j++ {
+        pointA := tour[j]
+        pointB := tour[(j+1) % NumCities]
+
+        fitness += cityMap[pointA][pointB]
+    }
+
+    return fitness
+}
+
+
+
+
+
+
+
+
 
 
 
@@ -213,18 +238,29 @@ func generatePop() (population Population){
 }
 
 func generateCityDists() (city_map []map[int]int) {
-    for i := 0; i < NumCities; i++ {
-        city_map = append(city_map, make(map[int]int))
+    // for i := 0; i < NumCities; i++ {
+    //     city_map = append(city_map, make(map[int]int))
+    //
+    //     for j := 0; j < NumCities; j++ {
+    //         if j > i {
+    //             city_map[i][j] = rand.Intn(1000)
+    //         } else if j < i {
+    //             city_map[i][j] = city_map[j][i]
+    //         }
+    //     }
+    //
+    // }
 
-        for j := 0; j < NumCities; j++ {
-            if j > i {
-                city_map[i][j] = rand.Intn(1000)
-            } else if j < i {
-                city_map[i][j] = city_map[j][i]
-            }
-        }
-
-    }
+    city_map = []map[int]int{map[int]int{7:82, 9:852, 2:387, 3:477, 4:899, 5:646, 1:120, 6:883, 8:165},
+     map[int]int{2:307, 3:603, 6:391, 7:31, 8:109, 0:120, 4:710, 5:99, 9:418},
+     map[int]int{8:887, 9:194, 1:307, 3:165, 4:16, 6:255, 0:387, 5:720, 7:905},
+     map[int]int{2:165, 6:153, 7:879, 0:477, 1:603, 4:9, 5:478, 8:821, 9:22},
+     map[int]int{5:376, 6:256, 7:692, 8:532, 2:16, 3:9, 9:793, 0:899, 1:710},
+     map[int]int{1:99, 2:720, 7:481, 8:921, 0:646, 3:478, 4:376, 6:366, 9:487},
+     map[int]int{0:883, 3:153, 8:672, 9:905, 1:391, 2:255, 4:256, 5:366, 7:909},
+     map[int]int{2:905, 3:879, 4:692, 5:481, 9:706, 0:82, 1:31, 6:909, 8:585},
+     map[int]int{1:109, 3:821, 4:532, 6:672, 7:585, 9:532, 0:165, 5:921, 2:887},
+     map[int]int{7:706, 8:532, 0:852, 1:418, 2:194, 4:793, 6:905, 3:22, 5:487}}
 
     return
 }
