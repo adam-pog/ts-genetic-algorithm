@@ -7,16 +7,15 @@ import (
     "sort"
 )
 
-const PopSize = 100
+const PopSize = 200
 const NumCities = 10
 
-const TournamentK = 10
+const TournamentK = 20
+const GenLimit = 500
+
 const CrossoverRate = 0.6
 const mutationRate = 0.03
 
-type Population struct {
-    tours []Tour
-}
 
 type Tour struct {
     path []int
@@ -28,38 +27,44 @@ func main() {
 
     fmt.Println("Generating City Map...")
     cityMap := generateCityDists()
-    //fmt.Println("Best Possible: ", findSolution(cityMap))
-    //time.Sleep(1000 * time.Millisecond)
+
     //fmt.Println(cityMap)
+
     fmt.Println("Initializing Population...")
     currentPop := generatePop()
-    currentPop.calculateFitness(cityMap)
-    fittestTour := findFittest(currentPop.tours)
+    calculateFitness(currentPop, cityMap)
+    fittestTour := findFittest(currentPop)
 
     //genNum := 0
     currentFitness := 0
-    for converged(currentPop) {
-        currentPop = currentPop.crossover(fittestTour)
-        currentPop.mutate()
-        currentPop.calculateFitness(cityMap)
-        fittestTour = findFittest(currentPop.tours)
+    fmt.Println("Starting iteration...")
+    fitnessCounter := 0
+    for converged(currentPop) && fitnessCounter < GenLimit{
+        currentPop = crossover(currentPop, fittestTour)
+        mutate(currentPop)
+        calculateFitness(currentPop, cityMap)
+        fittestTour = findFittest(currentPop)
         newFitness := fittestTour.fitness
+
         if newFitness != currentFitness {
             fmt.Println(fittestTour.fitness)
             currentFitness = newFitness
+        } else{
+            fitnessCounter++
         }
         //genNum++
     }
 
-    currentPop.calculateFitness(cityMap)
+    calculateFitness(currentPop, cityMap)
 
-    fmt.Println("Fittest: ", findFittest(currentPop.tours).fitness)
-    fmt.Println("Best Possible: ", findSolution(cityMap))
+    //fmt.Println(fitnessCounter)
+    fmt.Println("Fittest: ", findFittest(currentPop).fitness)
+    fmt.Println("Best Possible: ", findExactSolution(cityMap))
 }
 
 
 
-func converged(population Population) (halt bool){
+func converged(population []Tour) (halt bool){
     geneCount := []int{}
 
     for i := 0; i < NumCities; i++ {
@@ -71,7 +76,7 @@ func converged(population Population) (halt bool){
             sameCity := 1
             for insideTour := 0; insideTour < PopSize; insideTour++ {
                 if insideTour != currentTour {
-                    if population.tours[currentTour].path[cityNum] == population.tours[insideTour].path[cityNum] {
+                    if population[currentTour].path[cityNum] == population[insideTour].path[cityNum] {
                         sameCity += 1
                     }
                 }
@@ -95,7 +100,7 @@ func converged(population Population) (halt bool){
 
 
 
-func findSolution(cityMap []map[int]int) int {
+func findExactSolution(cityMap []map[int]int) int {
     A := []int{}
     c := []int{}
     for i := 0; i < NumCities; i++ {
@@ -146,22 +151,9 @@ func calculateTourFitness(tour []int, cityMap []map[int]int) int{
     return fitness
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-func (population Population)mutate() {
+func mutate(population []Tour) {
     for i := 0; i < PopSize; i++ {
-        population.tours[i].mutateTour()
+        population[i].mutateTour()
     }
 }
 
@@ -177,7 +169,7 @@ func (tour Tour) mutateTour() {
     }
 }
 
-func (population Population) crossover(fittestTour Tour)(nextPop Population) {
+func crossover(population []Tour, fittestTour Tour)(nextPop []Tour) {
     //tournament select
     //nextPop.tours = append(nextPop.tours, fittestTour)
     for i := 0; i < PopSize; i++ {
@@ -185,10 +177,10 @@ func (population Population) crossover(fittestTour Tour)(nextPop Population) {
             parent1 := selectParent(population)
             parent2 := selectParent(population)
 
-            nextPop.tours = append(nextPop.tours, crossoverTours(parent1, parent2))
+            nextPop = append(nextPop, crossoverTours(parent1, parent2))
         } else {
             //fmt.Println("not")
-            nextPop.tours = append(nextPop.tours, population.tours[i])
+            nextPop = append(nextPop, population[i])
         }
     }
 
@@ -225,10 +217,10 @@ func crossoverTours(parent1 Tour, parent2 Tour) (newTour Tour) {
     return
 }
 
-func selectParent(population Population) (tour Tour){
+func selectParent(population []Tour) (tour Tour){
     parentTours := []Tour{}
     for i := 0; i < TournamentK; i++ {
-        parentTours = append(parentTours, population.tours[rand.Intn(PopSize)])
+        parentTours = append(parentTours, population[rand.Intn(PopSize)])
     }
 
     return findFittest(parentTours)
@@ -245,9 +237,9 @@ func findFittest(tours []Tour)(fittestTour Tour) {
     return
 }
 
-func (population Population) calculateFitness(cityMap []map[int]int){
+func calculateFitness(population []Tour, cityMap []map[int]int){
     for i := 0; i < PopSize; i++ {
-        tour := population.tours[i]
+        tour := population[i]
         if tour.fitness == 0 {
             length := len(tour.path)
 
@@ -258,15 +250,15 @@ func (population Population) calculateFitness(cityMap []map[int]int){
                 tour.fitness += cityMap[pointA][pointB]
             }
 
-            population.tours[i] = tour
+            population[i] = tour
         }
     }
     return
 }
 
-func generatePop() (population Population){
+func generatePop() (population []Tour){
     for i := 0; i < PopSize; i++ {
-        population.tours = append(population.tours, Tour{rand.Perm(NumCities), 0})
+        population = append(population, Tour{rand.Perm(NumCities), 0})
     }
 
     return
