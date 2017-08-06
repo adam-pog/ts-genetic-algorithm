@@ -5,9 +5,7 @@ import (
    "image/color"
    "image/draw"
    "image/png"
-   "log"
    "os"
-   "os/exec"
    "github.com/llgcode/draw2d/draw2dimg"
    "./imgtext"
    . "../structs"
@@ -19,8 +17,8 @@ var (
 	circle      color.Color = color.RGBA{102, 140, 204, 255}
 	line        color.Color = color.RGBA{178, 101, 89, 255}
 
-	max_x = 2048
-	max_y = 2048
+	max_x = 4096
+	max_y = 4096
 )
 
 
@@ -102,7 +100,9 @@ func buildMap(path []int, coords []Coord) *image.RGBA{
         x := int(coords[i].X) + 30
         y := int(coords[i].Y) + 30
         draw.DrawMask(m, m.Bounds(), cr, image.ZP, &Circle{image.Point{x, y}, 30}, image.ZP, draw.Over)
-        imgtext.AddLabel(m, x, y, strconv.Itoa(i))
+        if(false){
+            imgtext.AddLabel(m, x, y, strconv.Itoa(i))
+        }
     }
 
 
@@ -127,18 +127,6 @@ func buildMap(path []int, coords []Coord) *image.RGBA{
 	return m
 }
 
-func Show(name string) {
-	command := "open"
-	arg1 := "-a"
-	arg2 := "/Applications/Preview.app"
-	cmd := exec.Command(command, arg1, arg2, name)
-	err := cmd.Run()
-
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
 func DrawMap(path []int, coords []Coord) {
 
 	m := buildMap(path, coords);
@@ -146,6 +134,4 @@ func DrawMap(path []int, coords []Coord) {
 	w, _ := os.Create("blogmap.png")
 	defer w.Close()
 	png.Encode(w, m) //Encode writes the Image m to w in PNG format.
-
-	Show(w.Name())
 }
