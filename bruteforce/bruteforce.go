@@ -1,16 +1,18 @@
 package bruteforce
 
-func FindExactSolution(cityMap []map[int]float64, numCities int) float64 {
+import . "../config"
+
+func FindExactSolution(cityMap []map[int]float64) float64 {
     A := []int{}
     c := []int{}
-    for i := 0; i < numCities; i++ {
+    for i := 0; i < NumCities; i++ {
         A = append(A, i)
         c = append(c, 0)
     }
 
-    solution := calculateTourFitness(A, cityMap, numCities)
+    solution := calculateTourFitness(A, cityMap)
     count := 0
-    for i := 0; i < numCities; {
+    for i := 0; i < NumCities; {
         if c[i] < i {
             if i % 2 == 0 {
                 temp := A[0]
@@ -27,7 +29,7 @@ func FindExactSolution(cityMap []map[int]float64, numCities int) float64 {
             //     fmt.Println("\nIteration:", count)
             // }
 
-            newSol := calculateTourFitness(A, cityMap, numCities)
+            newSol := calculateTourFitness(A, cityMap)
             if newSol < solution {
                 solution = newSol
             }
@@ -44,12 +46,12 @@ func FindExactSolution(cityMap []map[int]float64, numCities int) float64 {
 }
 
 
-func calculateTourFitness(tour []int, cityMap []map[int]float64, numCities int) float64{
+func calculateTourFitness(tour []int, cityMap []map[int]float64) float64{
     fitness := 0.0
 
-    for j := 0; j < numCities; j++ {
+    for j := 0; j < NumCities; j++ {
         pointA := tour[j]
-        pointB := tour[(j+1) % numCities]
+        pointB := tour[(j+1) % NumCities]
 
         fitness += cityMap[pointA][pointB]
     }

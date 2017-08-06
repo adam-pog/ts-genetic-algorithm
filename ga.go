@@ -7,26 +7,11 @@ import (
     "sort"
     "math"
     "./bruteforce"
+    "./drawmap"
+    . "./structs"
+    . "./config"
 )
 
-const PopSize = 200
-const NumCities = 10
-
-const TournamentK = 20
-const GenLimit = 500
-
-const CrossoverRate = 0.6
-const mutationRate = 0.03
-
-
-type Tour struct {
-    path []int
-    fitness float64
-}
-
-type Coord struct {
-    x, y float64
-}
 
 func main() {
     rand.Seed(time.Now().UTC().UnixNano())
@@ -50,10 +35,10 @@ func main() {
         mutate(currentPop)
         calculateFitness(currentPop, cityMap)
         fittestTour = findFittest(currentPop)
-        newFitness := fittestTour.fitness
+        newFitness := fittestTour.Fitness
 
         if newFitness != currentFitness {
-            fmt.Println(fittestTour.fitness)
+            fmt.Println(fittestTour.Fitness)
             currentFitness = newFitness
         } else{
             fitnessCounter++
@@ -63,9 +48,11 @@ func main() {
     calculateFitness(currentPop, cityMap)
 
     fittest := findFittest(currentPop)
-    fmt.Println("\nPath: ", fittest.path)
-    fmt.Printf("\n\nFittest:       %f\n", fittest.fitness)
-    fmt.Printf("Best Possible: %f\n", bruteforce.FindExactSolution(cityMap, NumCities))
+
+    drawmap.DrawMap(fittest.Path, cityCoords)
+    fmt.Println("\nPath: ", fittest.Path)
+    fmt.Printf("\n\nFittest:       %f\n", fittest.Fitness)
+    fmt.Printf("Best Possible: %f\n", bruteforce.FindExactSolution(cityMap))
 }
 
 
@@ -82,7 +69,7 @@ func converged(population []Tour) (halt bool){
             sameCity := 1
             for insideTour := 0; insideTour < PopSize; insideTour++ {
                 if insideTour != currentTour {
-                    if population[currentTour].path[cityNum] == population[insideTour].path[cityNum] {
+                    if population[currentTour].Path[cityNum] == population[insideTour].Path[cityNum] {
                         sameCity += 1
                     }
                 }
@@ -107,19 +94,7 @@ func converged(population []Tour) (halt bool){
 
 func mutate(population []Tour) {
     for i := 0; i < PopSize; i++ {
-        population[i].mutateTour()
-    }
-}
-
-
-func (tour Tour) mutateTour() {
-    for i := 0; i < NumCities; i++ {
-        if mutationRate > rand.Float64() {
-            mutateIndex := rand.Intn(NumCities)
-            city1 := tour.path[i]
-            tour.path[i] = tour.path[mutateIndex]
-            tour.path[mutateIndex] = city1
-        }
+        population[i].MutateTour()
     }
 }
 
@@ -146,24 +121,24 @@ func crossoverTours(parent1 Tour, parent2 Tour) (newTour Tour) {
     sort.Ints(points)
     pointA := points[0]
     pointB := points[1]
-    parentSlice := parent1.path[pointA:pointB]
+    parentSlice := parent1.Path[pointA:pointB]
 
     count := 0
     for i := 0; count < pointA; i++{
-        if !contains(parentSlice, parent2.path[i]) {
-            newTour.path = append(newTour.path, parent2.path[i])
+        if !contains(parentSlice, parent2.Path[i]) {
+            newTour.Path = append(newTour.Path, parent2.Path[i])
             count++
         }
     }
 
     for i := 0; i < len(parentSlice); i++{
-        newTour.path = append(newTour.path, parentSlice[i])
+        newTour.Path = append(newTour.Path, parentSlice[i])
     }
 
     count = NumCities
     for i := 0; count > pointB; i++{
-        if !contains(parentSlice, parent2.path[i]) && !contains(newTour.path, parent2.path[i]) {
-            newTour.path = append(newTour.path, parent2.path[i])
+        if !contains(parentSlice, parent2.Path[i]) && !contains(newTour.Path, parent2.Path[i]) {
+            newTour.Path = append(newTour.Path, parent2.Path[i])
             count--
         }
     }
@@ -183,7 +158,7 @@ func selectParent(population []Tour) (tour Tour){
 func findFittest(tours []Tour)(fittestTour Tour) {
     fittestTour = tours[0]
     for i := 1; i < TournamentK; i++ {
-        if tours[i].fitness < fittestTour.fitness {
+        if tours[i].Fitness < fittestTour.Fitness {
             fittestTour = tours[i]
         }
     }
@@ -194,14 +169,14 @@ func findFittest(tours []Tour)(fittestTour Tour) {
 func calculateFitness(population []Tour, cityMap []map[int]float64){
     for i := 0; i < PopSize; i++ {
         tour := population[i]
-        if tour.fitness == 0.0 {
-            length := len(tour.path)
+        if tour.Fitness == 0.0 {
+            length := len(tour.Path)
 
             for j := 0; j < length; j++ {
-                pointA := tour.path[j]
-                pointB := tour.path[(j+1) % length]
+                pointA := tour.Path[j]
+                pointB := tour.Path[(j+1) % length]
 
-                tour.fitness += cityMap[pointA][pointB]
+                tour.Fitness += cityMap[pointA][pointB]
             }
 
             population[i] = tour
@@ -254,7 +229,7 @@ func generateCityMap(cityCoords []Coord) (city_map []map[int]float64) {
             if j > i {
                 coord1 := cityCoords[i]
                 coord2 := cityCoords[j]
-                distance := math.Sqrt( math.Pow((coord1.x - coord2.x), 2) + math.Pow((coord1.y - coord2.y), 2) )
+                distance := math.Sqrt( math.Pow((coord1.X - coord2.X), 2) + math.Pow((coord1.Y - coord2.Y), 2) )
                 city_map[i][j] = distance
             } else if j < i {
                 city_map[i][j] = city_map[j][i]
@@ -279,7 +254,7 @@ func generateCityMap(cityCoords []Coord) (city_map []map[int]float64) {
 
 func generateCityCoords()(cityCoords []Coord) {
     for i := 0; i < NumCities; i++ {
-        cityCoords = append(cityCoords, Coord{float64(rand.Intn(1000)), float64(rand.Intn(1000))})
+        cityCoords = append(cityCoords, Coord{float64(rand.Intn(1500)), float64(rand.Intn(1500))})
     }
 
     return
