@@ -6,6 +6,7 @@ import (
     "time"
     "sort"
     "math"
+    "./bruteforce"
 )
 
 const PopSize = 200
@@ -30,23 +31,19 @@ type Coord struct {
 func main() {
     rand.Seed(time.Now().UTC().UnixNano())
 
-    fmt.Println("Generating City Map...")
+    fmt.Println("Generating City Coords...")
     cityCoords := generateCityCoords()
-    fmt.Println(cityCoords)
-    fmt.Println("\n\n\n")
+    fmt.Println("Generating City Map...")
     cityMap := generateCityMap(cityCoords)
-    fmt.Println(cityMap)
 
-    //fmt.Println(cityMap)
 
     fmt.Println("Initializing Population...")
     currentPop := generatePop()
     calculateFitness(currentPop, cityMap)
     fittestTour := findFittest(currentPop)
 
-    //genNum := 0
     currentFitness := 0.0
-    fmt.Println("Starting iteration...")
+    fmt.Println("Starting iteration...\n")
     fitnessCounter := 0
     for converged(currentPop) && fitnessCounter < GenLimit{
         currentPop = crossover(currentPop, fittestTour)
@@ -61,14 +58,14 @@ func main() {
         } else{
             fitnessCounter++
         }
-        //genNum++
     }
 
     calculateFitness(currentPop, cityMap)
 
-    //fmt.Println(fitnessCounter)
-    fmt.Println("Fittest: ", findFittest(currentPop).fitness)
-    fmt.Println("Best Possible: ", findExactSolution(cityMap))
+    fittest := findFittest(currentPop)
+    fmt.Println("\nPath: ", fittest.path)
+    fmt.Printf("\n\nFittest:       %f\n", fittest.fitness)
+    fmt.Printf("Best Possible: %f\n", bruteforce.FindExactSolution(cityMap, NumCities))
 }
 
 
@@ -102,62 +99,10 @@ func converged(population []Tour) (halt bool){
             halt = true
         }
     }
-
+    if(halt == false) {
+        fmt.Println("Converged!!!!")
+    }
     return
-}
-
-
-
-
-func findExactSolution(cityMap []map[int]float64) float64 {
-    A := []int{}
-    c := []int{}
-    for i := 0; i < NumCities; i++ {
-        A = append(A, i)
-        c = append(c, 0)
-    }
-
-    solution := calculateTourFitness(A, cityMap)
-
-    for i := 0; i < NumCities; {
-        if c[i] < i {
-            if i % 2 == 0 {
-                temp := A[0]
-                A[0] = A[i]
-                A[i] = temp
-            } else {
-                temp := A[c[i]]
-                A[c[i]] = A[i]
-                A[i] = temp
-            }
-            newSol := calculateTourFitness(A, cityMap)
-            if newSol < solution {
-                solution = newSol
-            }
-            c[i]++
-            i = 0
-        } else {
-            c[i] = 0
-            i ++
-        }
-
-    }
-
-    return solution
-}
-
-
-func calculateTourFitness(tour []int, cityMap []map[int]float64) float64{
-    fitness := 0.0
-
-    for j := 0; j < NumCities; j++ {
-        pointA := tour[j]
-        pointB := tour[(j+1) % NumCities]
-
-        fitness += cityMap[pointA][pointB]
-    }
-
-    return fitness
 }
 
 func mutate(population []Tour) {

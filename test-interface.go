@@ -5,12 +5,11 @@ import (
    "image/color"
    "image/draw"
    "image/png"
-   "github.com/llgcode/draw2d/draw2dimg"
-
    "log"
    "os"
    "os/exec"
-   "github.com/adam-pog/imgtext"
+   "./imgtext"
+   "github.com/llgcode/draw2d/draw2dimg"
 )
 
 // Sets Colors for easy use
