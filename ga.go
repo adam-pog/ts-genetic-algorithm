@@ -5,6 +5,7 @@ import (
     "math/rand"
     "time"
     "sort"
+    "math"
 )
 
 const PopSize = 200
@@ -19,14 +20,22 @@ const mutationRate = 0.03
 
 type Tour struct {
     path []int
-    fitness int
+    fitness float64
+}
+
+type Coord struct {
+    x, y float64
 }
 
 func main() {
     rand.Seed(time.Now().UTC().UnixNano())
 
     fmt.Println("Generating City Map...")
-    cityMap := generateCityDists()
+    cityCoords := generateCityCoords()
+    fmt.Println(cityCoords)
+    fmt.Println("\n\n\n")
+    cityMap := generateCityMap(cityCoords)
+    fmt.Println(cityMap)
 
     //fmt.Println(cityMap)
 
@@ -36,7 +45,7 @@ func main() {
     fittestTour := findFittest(currentPop)
 
     //genNum := 0
-    currentFitness := 0
+    currentFitness := 0.0
     fmt.Println("Starting iteration...")
     fitnessCounter := 0
     for converged(currentPop) && fitnessCounter < GenLimit{
@@ -100,7 +109,7 @@ func converged(population []Tour) (halt bool){
 
 
 
-func findExactSolution(cityMap []map[int]int) int {
+func findExactSolution(cityMap []map[int]float64) float64 {
     A := []int{}
     c := []int{}
     for i := 0; i < NumCities; i++ {
@@ -138,8 +147,8 @@ func findExactSolution(cityMap []map[int]int) int {
 }
 
 
-func calculateTourFitness(tour []int, cityMap []map[int]int) int{
-    fitness := 0
+func calculateTourFitness(tour []int, cityMap []map[int]float64) float64{
+    fitness := 0.0
 
     for j := 0; j < NumCities; j++ {
         pointA := tour[j]
@@ -237,10 +246,10 @@ func findFittest(tours []Tour)(fittestTour Tour) {
     return
 }
 
-func calculateFitness(population []Tour, cityMap []map[int]int){
+func calculateFitness(population []Tour, cityMap []map[int]float64){
     for i := 0; i < PopSize; i++ {
         tour := population[i]
-        if tour.fitness == 0 {
+        if tour.fitness == 0.0 {
             length := len(tour.path)
 
             for j := 0; j < length; j++ {
@@ -264,30 +273,69 @@ func generatePop() (population []Tour){
     return
 }
 
-func generateCityDists() (city_map []map[int]int) {
-    // for i := 0; i < NumCities; i++ {
-    //     city_map = append(city_map, make(map[int]int))
-    //
-    //     for j := 0; j < NumCities; j++ {
-    //         if j > i {
-    //             city_map[i][j] = rand.Intn(1000)
-    //         } else if j < i {
-    //             city_map[i][j] = city_map[j][i]
-    //         }
-    //     }
-    //
-    // }
+// func generateCityMap() (city_map []map[int]int) {
+//     // for i := 0; i < NumCities; i++ {
+//     //     city_map = append(city_map, make(map[int]int))
+//     //
+//     //     for j := 0; j < NumCities; j++ {
+//     //         if j > i {
+//     //             city_map[i][j] = rand.Intn(1000)
+//     //         } else if j < i {
+//     //             city_map[i][j] = city_map[j][i]
+//     //         }
+//     //     }
+//     //
+//     // }
+//
+//     city_map = []map[int]int{map[int]int{7:82, 9:852, 2:387, 3:477, 4:899, 5:646, 1:120, 6:883, 8:165},
+//      map[int]int{2:307, 3:603, 6:391, 7:31, 8:109, 0:120, 4:710, 5:99, 9:418},
+//      map[int]int{8:887, 9:194, 1:307, 3:165, 4:16, 6:255, 0:387, 5:720, 7:905},
+//      map[int]int{2:165, 6:153, 7:879, 0:477, 1:603, 4:9, 5:478, 8:821, 9:22},
+//      map[int]int{5:376, 6:256, 7:692, 8:532, 2:16, 3:9, 9:793, 0:899, 1:710},
+//      map[int]int{1:99, 2:720, 7:481, 8:921, 0:646, 3:478, 4:376, 6:366, 9:487},
+//      map[int]int{0:883, 3:153, 8:672, 9:905, 1:391, 2:255, 4:256, 5:366, 7:909},
+//      map[int]int{2:905, 3:879, 4:692, 5:481, 9:706, 0:82, 1:31, 6:909, 8:585},
+//      map[int]int{1:109, 3:821, 4:532, 6:672, 7:585, 9:532, 0:165, 5:921, 2:887},
+//      map[int]int{7:706, 8:532, 0:852, 1:418, 2:194, 4:793, 6:905, 3:22, 5:487}}
+//
+//     return
+// }
 
-    city_map = []map[int]int{map[int]int{7:82, 9:852, 2:387, 3:477, 4:899, 5:646, 1:120, 6:883, 8:165},
-     map[int]int{2:307, 3:603, 6:391, 7:31, 8:109, 0:120, 4:710, 5:99, 9:418},
-     map[int]int{8:887, 9:194, 1:307, 3:165, 4:16, 6:255, 0:387, 5:720, 7:905},
-     map[int]int{2:165, 6:153, 7:879, 0:477, 1:603, 4:9, 5:478, 8:821, 9:22},
-     map[int]int{5:376, 6:256, 7:692, 8:532, 2:16, 3:9, 9:793, 0:899, 1:710},
-     map[int]int{1:99, 2:720, 7:481, 8:921, 0:646, 3:478, 4:376, 6:366, 9:487},
-     map[int]int{0:883, 3:153, 8:672, 9:905, 1:391, 2:255, 4:256, 5:366, 7:909},
-     map[int]int{2:905, 3:879, 4:692, 5:481, 9:706, 0:82, 1:31, 6:909, 8:585},
-     map[int]int{1:109, 3:821, 4:532, 6:672, 7:585, 9:532, 0:165, 5:921, 2:887},
-     map[int]int{7:706, 8:532, 0:852, 1:418, 2:194, 4:793, 6:905, 3:22, 5:487}}
+func generateCityMap(cityCoords []Coord) (city_map []map[int]float64) {
+    for i := 0; i < NumCities; i++ {
+        city_map = append(city_map, make(map[int]float64))
+
+        for j := 0; j < NumCities; j++ {
+            if j > i {
+                coord1 := cityCoords[i]
+                coord2 := cityCoords[j]
+                distance := math.Sqrt( math.Pow((coord1.x - coord2.x), 2) + math.Pow((coord1.y - coord2.y), 2) )
+                city_map[i][j] = distance
+            } else if j < i {
+                city_map[i][j] = city_map[j][i]
+            }
+        }
+
+    }
+
+    // city_map = []map[int]int{map[int]int{7:82, 9:852, 2:387, 3:477, 4:899, 5:646, 1:120, 6:883, 8:165},
+    //  map[int]int{2:307, 3:603, 6:391, 7:31, 8:109, 0:120, 4:710, 5:99, 9:418},
+    //  map[int]int{8:887, 9:194, 1:307, 3:165, 4:16, 6:255, 0:387, 5:720, 7:905},
+    //  map[int]int{2:165, 6:153, 7:879, 0:477, 1:603, 4:9, 5:478, 8:821, 9:22},
+    //  map[int]int{5:376, 6:256, 7:692, 8:532, 2:16, 3:9, 9:793, 0:899, 1:710},
+    //  map[int]int{1:99, 2:720, 7:481, 8:921, 0:646, 3:478, 4:376, 6:366, 9:487},
+    //  map[int]int{0:883, 3:153, 8:672, 9:905, 1:391, 2:255, 4:256, 5:366, 7:909},
+    //  map[int]int{2:905, 3:879, 4:692, 5:481, 9:706, 0:82, 1:31, 6:909, 8:585},
+    //  map[int]int{1:109, 3:821, 4:532, 6:672, 7:585, 9:532, 0:165, 5:921, 2:887},
+    //  map[int]int{7:706, 8:532, 0:852, 1:418, 2:194, 4:793, 6:905, 3:22, 5:487}}
+
+    return
+}
+
+func generateCityCoords()(cityCoords []Coord) {
+    for i := 0; i < NumCities; i++ {
+        cityCoords = append(cityCoords, Coord{float64(rand.Intn(1000)), float64(rand.Intn(1000))})
+    }
 
     return
 }
