@@ -16,39 +16,44 @@ import (
 func main() {
     rand.Seed(time.Now().UTC().UnixNano())
 
-    fmt.Println("Generating City Coords...")
     cityCoords := generateCityCoords()
-    fmt.Println("Generating City Map...")
     cityMap := generateCityMap(cityCoords)
-
-    fmt.Println("Initializing Population...")
     currentPop := generatePop()
+
     calculateFitness(currentPop, cityMap)
     fittestTour := findFittest(currentPop)
 
     currentFitness := 0.0
-    fmt.Println("Starting iteration...\n")
+    fmt.Println("Starting Iteration...\n")
     fitnessCounter := 0
-    for converged(currentPop) && fitnessCounter < GenLimit{
+    totalGenCount := 0
+    for converged(currentPop, totalGenCount) && fitnessCounter < GenLimit{
         currentPop = crossover(currentPop, fittestTour)
         mutate(currentPop)
         calculateFitness(currentPop, cityMap)
         fittestTour = findFittest(currentPop)
         newFitness := fittestTour.Fitness
 
+
+        if(totalGenCount % GraphGenCount == 0) {
+          fmt.Println("Graph#", totalGenCount, fittestTour.Fitness)
+          drawmap.DrawMap(fittestTour.Path, cityCoords, totalGenCount)
+        }
+
         if newFitness != currentFitness {
-            fmt.Println(fittestTour.Fitness)
+            fmt.Println("Gen", totalGenCount, "-", fittestTour.Fitness)
             currentFitness = newFitness
         } else{
             fitnessCounter++
         }
+        totalGenCount++
     }
 
     calculateFitness(currentPop, cityMap)
 
     fittest := findFittest(currentPop)
 
-    drawmap.DrawMap(fittest.Path, cityCoords)
+    drawmap.DrawMap(fittest.Path, cityCoords, totalGenCount)
     fmt.Println("\nPath: ", fittest.Path)
     fmt.Printf("\n\nFittest:       %f\n", fittest.Fitness)
 
@@ -57,7 +62,7 @@ func main() {
 
 
 
-func converged(population []Tour) (halt bool){
+func converged(population []Tour, count int) (halt bool){
     geneCount := []int{}
 
     for i := 0; i < NumCities; i++ {
@@ -82,12 +87,13 @@ func converged(population []Tour) (halt bool){
     }
 
     for i := 0; i < NumCities; i++ {
-        if (float64(geneCount[i]) / float64(PopSize)) < .90 {
+      convergence := float64(geneCount[i]) / float64(PopSize)
+        if (convergence) < .90 {
             halt = true
         }
     }
     if(halt == false) {
-        fmt.Println("Converged!!!!")
+        fmt.Println("--- Population Converged ---")
     }
     return
 }
