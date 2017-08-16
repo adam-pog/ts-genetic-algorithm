@@ -57,7 +57,9 @@ func main() {
     fmt.Println("\nPath: ", fittest.Path)
     fmt.Printf("\n\nFittest:       %f\n", fittest.Fitness)
 
-    fmt.Printf("Best Possible: %f\n", bruteforce.FindExactSolution(cityMap))
+    if(NumCities < 12) {
+      fmt.Printf("Best Possible: %f\n", bruteforce.FindExactSolution(cityMap))
+    }
 }
 
 
@@ -114,6 +116,7 @@ func crossover(population []Tour, fittestTour Tour)(nextPop []Tour) {
 
             nextPop = append(nextPop, crossoverTours(parent1, parent2))
         } else {
+            population[i].Fitness = 0
             nextPop = append(nextPop, population[i])
         }
     }
