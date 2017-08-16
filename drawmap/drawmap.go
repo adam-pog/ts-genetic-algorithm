@@ -8,8 +8,8 @@ import (
    "os"
    "github.com/llgcode/draw2d/draw2dimg"
    "./imgtext"
-   . "../structs"
    "strconv"
+   . "../structs"
 )
 
 var (
@@ -105,33 +105,14 @@ func buildMap(path []int, coords []Coord) *image.RGBA{
         }
     }
 
-
-    // drawlines([4]float64{1000, 1000, 30, 30}, m)
-	// drawlines([4]float64{500, 500, 30, 30}, m)
-	// drawlines([4]float64{30, 30, 300, 165}, m)
-	// drawlines([4]float64{30, 30, 200, 405}, m)
-    //
-	// draw.DrawMask(m, m.Bounds(), cr, image.ZP, &Circle{image.Point{1000, 1000}, 30}, image.ZP, draw.Over)
-	// draw.DrawMask(m, m.Bounds(), cr, image.ZP, &Circle{image.Point{500, 500}, 30}, image.ZP, draw.Over)
-	// draw.DrawMask(m, m.Bounds(), cr, image.ZP, &Circle{image.Point{30, 30}, 30}, image.ZP, draw.Over)
-	// draw.DrawMask(m, m.Bounds(), cr, image.ZP, &Circle{image.Point{300, 165}, 30}, image.ZP, draw.Over)
-	// draw.DrawMask(m, m.Bounds(), cr, image.ZP, &Circle{image.Point{200, 405}, 30}, image.ZP, draw.Over)
-    //
-    // imgtext.AddLabel(m, 500, 500, "1")
-    // imgtext.AddLabel(m, 1000, 1000, "5")
-    // imgtext.AddLabel(m, 30, 30, "2")
-    // imgtext.AddLabel(m, 300, 165, "3")
-    //imgtext.AddLabel(m, 200, 405, "4")
-
-
 	return m
 }
 
-func DrawMap(path []int, coords []Coord) {
+func DrawMap(path []int, coords []Coord, num int) {
 
 	m := buildMap(path, coords);
 
-	w, _ := os.Create("blogmap.png")
+	w, _ := os.Create("graphs/tourGraph" + strconv.Itoa(num) + ".png")
 	defer w.Close()
 	png.Encode(w, m) //Encode writes the Image m to w in PNG format.
 }
