@@ -2,6 +2,7 @@ package bruteforce
 
 import . "../config"
 
+// Heaps Algorithm
 func FindExactSolution(cityMap []map[int]float64) float64 {
     A := []int{}
     c := []int{}
